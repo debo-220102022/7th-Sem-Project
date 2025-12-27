@@ -9,62 +9,39 @@ import {
   BarChart,
   Bar,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  ReferenceArea
 } from "recharts";
 
 export default function HealthGraphs({ userdata }) {
   if (!userdata) return null;
 
-  /* --------- FORCE SAMPLE DATA IF EMPTY --------- */
+  /* ================= BMI DEMO DATA (NO SPIKES) ================= */
+  const bmiData = [
+    { name: "Overweight", bmi: 28.4 },
+    { name: "Normal", bmi: 22.5 },
+    { name: "Underweight", bmi: 17.3 }
+  ];
 
-  const history =
-    userdata.history && userdata.history.length > 0
-      ? userdata.history
-      : [
-          { profile: { weight: 70, height: 170 } },
-          { profile: { weight: 68, height: 170 } },
-          { profile: { weight: 66, height: 170 } }
-        ];
+  /* ================= WEIGHT DEMO DATA ================= */
+  const weightData = [
+    { name: "Check 1", weight: 82 },
+    { name: "Check 2", weight: 65 },
+    { name: "Check 3", weight: 50 }
+  ];
 
-  const waterEntries =
-    userdata.water?.drankMlByDate &&
-    Object.keys(userdata.water.drankMlByDate).length > 0
-      ? userdata.water.drankMlByDate
-      : {
-          "2025-01-01": 1200,
-          "2025-01-02": 1800,
-          "2025-01-03": 2000
-        };
-
-  /* --------- Weight Data --------- */
-  const weightData = history.map((entry, index) => ({
-    name: `Check ${index + 1}`,
-    weight: entry.profile.weight
-  }));
-
-  /* --------- BMI Data --------- */
-  const bmiData = history.map((entry, index) => {
-    const h = entry.profile.height / 100;
-    return {
-      name: `Check ${index + 1}`,
-      bmi: +(entry.profile.weight / (h * h)).toFixed(1)
-    };
-  });
-
-  /* --------- Water Data --------- */
-  const waterData = Object.entries(waterEntries).map(
-    ([date, intake]) => ({
-      date,
-      intake,
-      goal: userdata.water?.goalMl || 2000
-    })
-  );
+  /* ================= WATER DEMO DATA ================= */
+  const waterData = [
+    { date: "2025-01-01", intake: 1200, goal: 2000 },
+    { date: "2025-01-02", intake: 1800, goal: 2000 },
+    { date: "2025-01-03", intake: 2000, goal: 2000 }
+  ];
 
   return (
     <div className="bg-white p-4 rounded mt-4">
       <h2 className="text-xl font-bold mb-4">Health Analytics</h2>
 
-      {/* ===== WEIGHT GRAPH ===== */}
+      {/* ================= WEIGHT GRAPH ================= */}
       <h3 className="font-semibold mb-2">Weight Progress</h3>
       <div style={{ width: "100%", height: 260 }}>
         <ResponsiveContainer>
@@ -79,25 +56,30 @@ export default function HealthGraphs({ userdata }) {
         </ResponsiveContainer>
       </div>
 
-      {/* ===== BMI GRAPH ===== */}
+      {/* ================= BMI GRAPH ================= */}
       <h3 className="font-semibold mt-6 mb-2">BMI Trend</h3>
       <div style={{ width: "100%", height: 260 }}>
         <ResponsiveContainer>
           <LineChart data={bmiData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
-            <YAxis />
+            <YAxis domain={[10, 35]} />
             <Tooltip />
             <Legend />
-            <Line dataKey="bmi" stroke="#ef4444" strokeWidth={2} />
+
+            {/* BMI CATEGORY ZONES */}
+            <ReferenceArea y1={0} y2={18.5} fill="#60a5fa" fillOpacity={0.25} />
+            <ReferenceArea y1={18.5} y2={24.9} fill="#4ade80" fillOpacity={0.25} />
+            <ReferenceArea y1={25} y2={29.9} fill="#facc15" fillOpacity={0.25} />
+            <ReferenceArea y1={30} y2={40} fill="#f87171" fillOpacity={0.25} />
+
+            <Line dataKey="bmi" stroke="#ef4444" strokeWidth={2} dot />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* ===== WATER GRAPH ===== */}
-      <h3 className="font-semibold mt-6 mb-2">
-        Water Intake vs Goal
-      </h3>
+      {/* ================= WATER GRAPH ================= */}
+      <h3 className="font-semibold mt-6 mb-2">Water Intake vs Goal</h3>
       <div style={{ width: "100%", height: 260 }}>
         <ResponsiveContainer>
           <BarChart data={waterData}>
